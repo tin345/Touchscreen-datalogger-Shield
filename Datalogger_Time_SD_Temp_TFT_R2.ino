@@ -78,15 +78,16 @@ void setup()
   tft.begin();
   tft.setRotation(rotation);
   tft.fillScreen(ILI9341_BLACK);
+
   setup_SD();
   setup_RTC();
   error = OneWireGetAddr();
   if (error)
   {
-    Serial.print("Temp error = ");
+    Serial.print(F("Temp error = "));
     Serial.println(error); 
   }  
-  Serial.print("Temp max addr =");
+  Serial.print(F("Temp max addr ="));
   Serial.println(addr_count_max);
   list_temp_addr();
 
@@ -112,17 +113,19 @@ void loop()
   if (minute_save+data_sample_rate > 60){minute_save-=60;}  
   // Write SD and Graph based upon sample rate
   Serial.print(minute_now);
-  Serial.print(" = ");
+  Serial.print(F(" = "));
   Serial.println(minute_save);
-//  if (minute_now == minute_save+data_sample_rate)
-//  {
-  Serial.print("SD Write");
-  Serial.println();
-  minute_save=minute_now;
-  graph_data();  
-     //  analog_read();  // create dataString  NO ANALOG DATA
-  SD_write();
-//  }
+
+  graph_data(); // graph every second ... or only on data save 
+  if (minute_now == minute_save+data_sample_rate)
+  {
+    Serial.print(F("SD Write"));
+    Serial.println();
+    minute_save=minute_now;
+        //  analog_read();  // create dataString  NO ANALOG DATA
+        //  graph_data();  
+    SD_write();
+  }
   delay(100);
 }
 
@@ -248,7 +251,7 @@ void SD_write()
   }
   // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening datalog.txt");
+    Serial.println(F("error opening datalog.txt"));
   }
 }
 
@@ -256,25 +259,26 @@ void SD_write()
 void setup_SD(void)
 {
    // see if the card is present and can be initialized:
-  Serial.print("Initializing SD card...");
-  if (!SD.begin(SD_CS)) {
-    Serial.println("Card failed, or not present");
+  Serial.print(F("Initializing SD card..."));
+  if (!SD.begin(SD_CS)) 
+  {
+    Serial.println(F("Card failed, or not present"));
     // don't do anything more:
     return;
   }
-  Serial.println("card initialized."); 
+  Serial.println(F("card initialized.")); 
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void setup_RTC(void)
 {
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    Serial.println(F("Couldn't find RTC"));
     while (1);
   }
 
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, lets set the time!");
+    Serial.println(F("RTC lost power, lets set the time!"));
     // following line sets the RTC to the date & time this sketch was compiled
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // This line sets the RTC with an explicit date & time, for example to set
@@ -392,12 +396,12 @@ byte OneWireGetAddr()
   for( i = 0; i < 4; i++) //up to 4 oneWire devices
   {
    Serial.println();
-   Serial.print("Count = ");
+   Serial.print(F("Count = "));
    Serial.println(i, HEX);
    
   if ( !ds.search(addr_list[i])) 
   {
-    Serial.println("No more addresses.");
+    Serial.println(F("No more addresses."));
     for( j = 0; j < 8; j++) // prevent from returning last Addr twice, so zero out addr on fail
     {                       // this should not be needed ... but it is...
       addr_list[i][j]= 0;
@@ -408,7 +412,7 @@ byte OneWireGetAddr()
 
   if (OneWire::crc8(addr_list[i], 7) != addr_list[i][7]) 
   {
-      Serial.println("CRC is not valid!");
+      Serial.println(F("CRC is not valid!"));
       break;
   }
  
@@ -427,20 +431,20 @@ byte OneWireGetAddr()
   switch (addr_list[i][0]) 
   {
     case 0x10:
-      Serial.print("Chip = DS18S20");  // or old DS1820
+      Serial.print(F("Chip = DS18S20"));  // or old DS1820
       break;
     case 0x28:
-      Serial.print("Chip = DS18B20");
+      Serial.print(F("Chip = DS18B20"));
       break;
     case 0x22:
-      Serial.print("Chip = DS1822");
+      Serial.print(F("Chip = DS1822"));
       break;
     default:
-      Serial.println("Device is not a DS18x20 family device.");
+      Serial.println(F("Device is not a DS18x20 family device."));
       return(1);
   }
   addr_count_max++;
-  Serial.print(",  ROM =");  // print full address
+  Serial.print(F(",  ROM ="));  // print full address
   for( j = 0; j < 8; j++) 
   {
     Serial.write(' ');
@@ -457,7 +461,7 @@ void list_temp_addr()
   byte j;
   for( i = 0; i < 4; i++) 
   {
-    Serial.print("Temp Count = ");
+    Serial.print(F("Temp Count = "));
     Serial.println(i, HEX);
     Serial.print("ROM =");
     for( j = 0; j < 8; j++) 
